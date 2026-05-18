@@ -141,76 +141,90 @@
                 <button class="btn" onclick="downloadCode()">Download</button>
             </div>
         </div>
-        <pre id="ps-code"><span class="c"># Define parameters that can be passed via command line</span>
+        <pre id="ps-code"><span class="c"># Parameters definition</span>
 <span class="k">param</span>(
     [string]<span class="v">$TargetDir</span>,
     [string]<span class="v">$Extension</span>
 )
 
-<span class="c"># If TargetDir wasn't provided as an argument, ask for it</span>
+<span class="c"># Interactive path retrieval</span>
 <span class="k">if</span> ([string]::IsNullOrWhiteSpace(<span class="v">$TargetDir</span>)) {
     <span class="v">$TargetDir</span> = Read-Host <span class="s">"Enter target folder path (Press Enter for current directory)"</span>
 }
-<span class="c"># Default to current directory if still empty</span>
 <span class="k">if</span> ([string]::IsNullOrWhiteSpace(<span class="v">$TargetDir</span>)) { <span class="v">$TargetDir</span> = Get-Location }
 
-<span class="c"># If Extension wasn't provided, ask for it</span>
+<span class="c"># Interactive extension retrieval</span>
 <span class="k">if</span> ([string]::IsNullOrWhiteSpace(<span class="v">$Extension</span>)) {
     <span class="v">$Extension</span> = Read-Host <span class="s">"Enter file extension (e.g., png, jpg)"</span>
 }
-<span class="c"># Default to png if still empty</span>
 <span class="k">if</span> ([string]::IsNullOrWhiteSpace(<span class="v">$Extension</span>)) { <span class="v">$Extension</span> = <span class="s">"png"</span> }
-
-<span class="c"># Clean up extension format</span>
 <span class="k">if</span> (!<span class="v">$Extension</span>.StartsWith(<span class="s">"."</span>)) { <span class="v">$Extension</span> = <span class="s">"."</span> + <span class="v">$Extension</span> }
 
-Write-Host <span class="s">"`n--- Starting Process ---"</span> -ForegroundColor Cyan
+Write-Host <span class="s">"`n--- Task Started ---"</span> -ForegroundColor Cyan
 Write-Host <span class="s">"Directory: $TargetDir"</span>
-Write-Host <span class="s">"Extension: $Extension"</span> -ForegroundColor Gray
+Write-Host <span class="s">"Extension: $Extension"</span>
 
-<span class="c"># Check if directory exists</span>
 <span class="k">if</span> (!(Test-Path <span class="v">$TargetDir</span>)) {
-    Write-Host <span class="s">"Error: Directory does not exist!"</span> -ForegroundColor Red
-    pause
-    <span class="k">exit</span>
+    Write-Host <span class="s">"Error: Folder does not exist!"</span> -ForegroundColor Red
+    pause; <span class="k">exit</span>
 }
 
-<span class="c"># Fetch files</span>
-<span class="v">$files</span> = Get-ChildItem -Path <span class="v">$TargetDir</span> -Filter <span class="s">"*$Extension"</span>
+<span class="c"># Get list of files</span>
+<span class="v">$files</span> = Get-ChildItem -Path <span class="v">$TargetDir</span> -Filter <span class="s">"*$Extension"</span> -File
 
 <span class="k">if</span> (<span class="v">$files</span>.Count -eq 0) {
     Write-Host <span class="s">"No matching files found."</span> -ForegroundColor Yellow
 } <span class="k">else</span> {
+    <span class="c"># Hash Map to store discovered hashes for duplicate detection</span>
+    <span class="v">$hashMap</span> = @{}
+
     <span class="k">foreach</span> (<span class="v">$f</span> <span class="k">in</span> <span class="v">$files</span>) {
         <span class="k">try</span> {
+            <span class="c"># Calculate full SHA256 Hash</span>
             <span class="v">$hash</span> = (Get-FileHash <span class="v">$f</span>.FullName -Algorithm SHA256).Hash.ToUpper()
             
-            <span class="v">$newNameBase</span> = <span class="v">$hash</span>.Substring(<span class="v">$hash</span>.Length - 10)
+            <span class="c"># --- Deduplication Logic ---</span>
+            <span class="k">if</span> (<span class="v">$hashMap</span>.ContainsKey(<span class="v">$hash</span>)) {
+                <span class="c"># If hash exists, it is a duplicate</span>
+                <span class="v">$originalFile</span> = <span class="v">$hashMap</span>[<span class="v">$hash</span>]
+                Remove-Item -Path <span class="v">$f</span>.FullName -Force
+                Write-Host <span class="s">"Deleted Duplicate: $($f.Name) (Identical to $originalFile)"</span> -ForegroundColor Gray
+                <span class="k">continue</span>
+            }
+
+            <span class="c"># Record new hash in the map</span>
+            <span class="v">$hashMap</span>[<span class="v">$hash</span>] = <span class="v">$f</span>.Name
+
+            <span class="c"># --- Renaming Logic ---</span>
+            <span class="c"># Use the last 12 characters of the hash as the new filename</span>
+            <span class="v">$newNameBase</span> = <span class="v">$hash</span>.Substring(<span class="v">$hash</span>.Length - 12)
             <span class="v">$newName</span> = <span class="v">$newNameBase</span> + <span class="v">$Extension</span>
             
+            <span class="c"># Skip if the file is already named correctly</span>
             <span class="k">if</span> (<span class="v">$f</span>.Name -eq <span class="v">$newName</span>) { <span class="k">continue</span> }
 
+            <span class="c"># Conflict handling (low probability collision check)</span>
             <span class="k">if</span> (Test-Path (Join-Path <span class="v">$TargetDir</span> <span class="v">$newName</span>)) {
-                <span class="v">$newNameBase</span> = <span class="v">$hash</span>.Substring(<span class="v">$hash</span>.Length - 12)
-                <span class="v">$newName</span> = <span class="v">$newNameBase</span> + <span class="v">$Extension</span>
-                
                 <span class="v">$count</span> = 1
-                <span class="k">while</span> (Test-Path (Join-Path <span class="v">$TargetDir</span> <span class="v">$newName</span>)) {
-                    <span class="v">$newName</span> = <span class="v">$newNameBase</span> + <span class="s">"-"</span> + <span class="v">$count</span> + <span class="v">$Extension</span>
+                <span class="k">while</span> (Test-Path (Join-Path <span class="v">$TargetDir</span> <span class="s">"$newNameBase-$count$Extension"</span>)) {
                     <span class="v">$count</span>++
                 }
+                <span class="v">$newName</span> = <span class="s">"$newNameBase-$count$Extension"</span>
             }
 
             Rename-Item -Path <span class="v">$f</span>.FullName -NewName <span class="v">$newName</span> -ErrorAction Stop
             Write-Host <span class="s">"Renamed: $($f.Name) -> $newName"</span> -ForegroundColor Green
+            
+            <span class="c"># Update the map with the new filename</span>
+            <span class="v">$hashMap</span>[<span class="v">$hash</span>] = <span class="v">$newName</span>
         }
         <span class="k">catch</span> {
-            Write-Host <span class="s">"Failed: $($f.Name). Error: $($_.Exception.Message)"</span> -ForegroundColor Red
+            Write-Host <span class="s">"Failed to process: $($f.Name). Reason: $($_.Exception.Message)"</span> -ForegroundColor Red
         }
     }
 }
 
-Write-Host <span class="s">"--- Finished ---"</span> -ForegroundColor Cyan
+Write-Host <span class="s">"`n--- Task Completed ---"</span> -ForegroundColor Cyan
 pause</pre>
     </div>
 
@@ -220,21 +234,16 @@ pause</pre>
         
         <h3>Key Features</h3>
         <ul>
-            <li><strong>Content-Based</strong>: Renames files based on actual content, not metadata.</li>
-            <li><strong>Conflict Resolution</strong>: 
-                <ul>
-                    <li>Uses the last 10 characters of the hash by default.</li>
-                    <li>Falls back to 12 characters if a name conflict occurs.</li>
-                    <li>Appends an incremental counter if conflicts persist.</li>
-                </ul>
-            </li>
+            <li><strong>Content-Based & Deduplication</strong>: Identifies files by actual content. If an identical file (matching hash) is found, the duplicate is automatically deleted to save space.</li>
+            <li><strong>Hash Filenames</strong>: Uses the last 12 characters of the SHA256 hash for neat and standardized naming.</li>
+            <li><strong>Collision Safety</strong>: Implements an incremental counter suffix (e.g., <code class="inline-code">-1</code>, <code class="inline-code">-2</code>) in the extremely rare event of a name collision.</li>
             <li><strong>Customizable</strong>: Prompted inputs for both target directory and file extension.</li>
         </ul>
 
         <h3>How to Use</h3>
         <p><strong>Option A: Direct Execution</strong></p>
         <ul>
-            <li>Click <strong>Download</strong> above to save the <code class="inline-code">.ps1</code> file.</li>
+            <li>Click <strong>Download</strong> above to save the <code class="inline-code">RenameByHash.ps1</code> file.</li>
             <li>Right-click the file and select <strong>"Run with PowerShell"</strong>.</li>
             <li>Follow the on-screen prompts to set the folder path and file type.</li>
         </ul>
@@ -246,7 +255,7 @@ pause</pre>
         <h3>Requirements & Notes</h3>
         <ul>
             <li><strong>Execution Policy</strong>: If scripts are disabled on your system, run PowerShell as Administrator and execute: <code class="inline-code">Set-ExecutionPolicy RemoteSigned</code>.</li>
-            <li><strong>Safety</strong>: Batch renaming is permanent. Always test on a small folder or keep a backup before processing large libraries.</li>
+            <li><strong>Safety Notice</strong>: This version includes <strong>file deletion</strong> for duplicate content. Always test on a temporary folder or ensure you have a backup before processing large libraries.</li>
         </ul>
     </div>
 </div>
