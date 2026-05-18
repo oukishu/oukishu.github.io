@@ -1,0 +1,16 @@
+window.WORKSPACE_DATA = {
+    "title": "Static Workspace",
+    "subtitle": "Lightweight decentralized toolkit and local technical archive",
+    "items": [
+        {
+            "title": "RenameByHash Viewer",
+            "desc": "Hash-renamed file viewer - Pure client-side logic, supporting local parsing and metadata verification.",
+            "url": "RenameByHash_Viewer.html"
+        },
+        {
+            "title": "Git Repository Cleanup Guide",
+            "desc": "Large file removal and history purge guide - Deep optimization workflow leveraging git-filter-repo.",
+            "url": "git-cleanup-guide.html"
+        }
+    ]
+};
