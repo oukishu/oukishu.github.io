@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RenameByHash.ps1 - GitHub Style Viewer</title>
+    <style>
+        :root {
+            --color-canvas-default: #ffffff;
+            --color-canvas-subtle: #f6f8fa;
+            --color-border-default: #d0d7de;
+            --color-fg-default: #1f2328;
+            --color-fg-muted: #656d76;
+            --color-accent-fg: #0969da;
+            --color-btn-bg: #f6f8fa;
+            --color-btn-hover-bg: #f3f4f6;
+            --color-btn-text: #24292f;
+            --font-stack: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif;
+            --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+        }
+
+        body {
+            font-family: var(--font-stack);
+            background-color: var(--color-canvas-default);
+            color: var(--color-fg-default);
+            margin: 0;
+            padding: 40px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1012px;
+        }
+
+        /* File Box Style */
+        .box {
+            border: 1px solid var(--color-border-default);
+            border-radius: 6px;
+            overflow: hidden;
+            margin-bottom: 24px;
+        }
+
+        .box-header {
+            background-color: var(--color-canvas-subtle);
+            padding: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--color-border-default);
+        }
+
+        .file-info {
+            display: flex;
+            align-items: center;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .btn {
+            padding: 5px 12px;
+            font-size: 12px;
+            font-weight: 600;
+            background-color: var(--color-btn-bg);
+            border: 1px solid var(--color-border-default);
+            border-radius: 6px;
+            cursor: pointer;
+            color: var(--color-btn-text);
+            text-decoration: none;
+            transition: 0.2s;
+        }
+
+        .btn:hover { background-color: var(--color-btn-hover-bg); }
+
+        pre {
+            margin: 0;
+            padding: 16px;
+            font-family: var(--font-mono);
+            font-size: 12px;
+            line-height: 1.45;
+            overflow: auto;
+            tab-size: 4;
+            background-color: #fff;
+        }
+
+        /* Documentation Style (README) */
+        .readme-section {
+            border: 1px solid var(--color-border-default);
+            border-radius: 6px;
+            padding: 32px;
+            background-color: #fff;
+        }
+
+        .readme-section h2 {
+            margin-top: 0;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--color-border-default);
+            font-size: 24px;
+        }
+
+        .readme-section h3 {
+            font-size: 18px;
+            margin-top: 24px;
+        }
+
+        .readme-section p, .readme-section li {
+            font-size: 14px;
+            color: #24292f;
+            line-height: 1.6;
+        }
+
+        code.inline-code {
+            padding: 0.2em 0.4em;
+            background-color: rgba(175,184,193,0.2);
+            border-radius: 6px;
+            font-family: var(--font-mono);
+            font-size: 85%;
+        }
+
+        /* Syntax Highlighting (GitHub Light) */
+        .c { color: #6e7781; font-style: italic; } /* Comment */
+        .k { color: #cf222e; } /* Keyword */
+        .s { color: #0a3069; } /* String */
+        .v { color: #953800; } /* Variable/Parameter */
+
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="box">
+        <div class="box-header">
+            <div class="file-info">
+                <svg style="margin-right: 8px; color: var(--color-fg-muted);" viewBox="0 0 16 16" fill="currentColor" width="16" height="16"><path d="M2 1.75C2 .784 2.784 0 3.75 0h6.586c.464 0 .909.184 1.237.513l3.414 3.414c.329.328.513.773.513 1.237v9.086A1.75 1.75 0 0 1 13.75 16H3.75A1.75 1.75 0 0 1 2 14.25Zm1.75-.25a.25.25 0 0 0-.25.25v12.5c0 .138.112.25.25.25h10a.25.25 0 0 0 .25-.25V5.5h-2.75A1.75 1.75 0 0 1 9.5 3.75V1h-5.75Z"></path></svg>
+                RenameByHash.ps1
+            </div>
+            <div class="file-actions">
+                <button class="btn" id="copyBtn" onclick="copyCode()">Copy raw</button>
+                <button class="btn" onclick="downloadCode()">Download</button>
+            </div>
+        </div>
+        <pre id="ps-code"><span class="c"># Define parameters that can be passed via command line</span>
+<span class="k">param</span>(
+    [string]<span class="v">$TargetDir</span>,
+    [string]<span class="v">$Extension</span>
+)
+
+<span class="c"># If TargetDir wasn't provided as an argument, ask for it</span>
+<span class="k">if</span> ([string]::IsNullOrWhiteSpace(<span class="v">$TargetDir</span>)) {
+    <span class="v">$TargetDir</span> = Read-Host <span class="s">"Enter target folder path (Press Enter for current directory)"</span>
+}
+<span class="c"># Default to current directory if still empty</span>
+<span class="k">if</span> ([string]::IsNullOrWhiteSpace(<span class="v">$TargetDir</span>)) { <span class="v">$TargetDir</span> = Get-Location }
+
+<span class="c"># If Extension wasn't provided, ask for it</span>
+<span class="k">if</span> ([string]::IsNullOrWhiteSpace(<span class="v">$Extension</span>)) {
+    <span class="v">$Extension</span> = Read-Host <span class="s">"Enter file extension (e.g., png, jpg)"</span>
+}
+<span class="c"># Default to png if still empty</span>
+<span class="k">if</span> ([string]::IsNullOrWhiteSpace(<span class="v">$Extension</span>)) { <span class="v">$Extension</span> = <span class="s">"png"</span> }
+
+<span class="c"># Clean up extension format</span>
+<span class="k">if</span> (!<span class="v">$Extension</span>.StartsWith(<span class="s">"."</span>)) { <span class="v">$Extension</span> = <span class="s">"."</span> + <span class="v">$Extension</span> }
+
+Write-Host <span class="s">"`n--- Starting Process ---"</span> -ForegroundColor Cyan
+Write-Host <span class="s">"Directory: $TargetDir"</span>
+Write-Host <span class="s">"Extension: $Extension"</span> -ForegroundColor Gray
+
+<span class="c"># Check if directory exists</span>
+<span class="k">if</span> (!(Test-Path <span class="v">$TargetDir</span>)) {
+    Write-Host <span class="s">"Error: Directory does not exist!"</span> -ForegroundColor Red
+    pause
+    <span class="k">exit</span>
+}
+
+<span class="c"># Fetch files</span>
+<span class="v">$files</span> = Get-ChildItem -Path <span class="v">$TargetDir</span> -Filter <span class="s">"*$Extension"</span>
+
+<span class="k">if</span> (<span class="v">$files</span>.Count -eq 0) {
+    Write-Host <span class="s">"No matching files found."</span> -ForegroundColor Yellow
+} <span class="k">else</span> {
+    <span class="k">foreach</span> (<span class="v">$f</span> <span class="k">in</span> <span class="v">$files</span>) {
+        <span class="k">try</span> {
+            <span class="v">$hash</span> = (Get-FileHash <span class="v">$f</span>.FullName -Algorithm SHA256).Hash.ToUpper()
+            
+            <span class="v">$newNameBase</span> = <span class="v">$hash</span>.Substring(<span class="v">$hash</span>.Length - 10)
+            <span class="v">$newName</span> = <span class="v">$newNameBase</span> + <span class="v">$Extension</span>
+            
+            <span class="k">if</span> (<span class="v">$f</span>.Name -eq <span class="v">$newName</span>) { <span class="k">continue</span> }
+
+            <span class="k">if</span> (Test-Path (Join-Path <span class="v">$TargetDir</span> <span class="v">$newName</span>)) {
+                <span class="v">$newNameBase</span> = <span class="v">$hash</span>.Substring(<span class="v">$hash</span>.Length - 12)
+                <span class="v">$newName</span> = <span class="v">$newNameBase</span> + <span class="v">$Extension</span>
+                
+                <span class="v">$count</span> = 1
+                <span class="k">while</span> (Test-Path (Join-Path <span class="v">$TargetDir</span> <span class="v">$newName</span>)) {
+                    <span class="v">$newName</span> = <span class="v">$newNameBase</span> + <span class="s">"-"</span> + <span class="v">$count</span> + <span class="v">$Extension</span>
+                    <span class="v">$count</span>++
+                }
+            }
+
+            Rename-Item -Path <span class="v">$f</span>.FullName -NewName <span class="v">$newName</span> -ErrorAction Stop
+            Write-Host <span class="s">"Renamed: $($f.Name) -> $newName"</span> -ForegroundColor Green
+        }
+        <span class="k">catch</span> {
+            Write-Host <span class="s">"Failed: $($f.Name). Error: $($_.Exception.Message)"</span> -ForegroundColor Red
+        }
+    }
+}
+
+Write-Host <span class="s">"--- Finished ---"</span> -ForegroundColor Cyan
+pause</pre>
+    </div>
+
+    <div class="readme-section">
+        <h2>README.md</h2>
+        <p>This script renames files based on their <strong>SHA256 hash</strong> value. It is ideal for organizing wallpaper collections, asset libraries, or identifying duplicate content.</p>
+        
+        <h3>Key Features</h3>
+        <ul>
+            <li><strong>Content-Based</strong>: Renames files based on actual content, not metadata.</li>
+            <li><strong>Conflict Resolution</strong>: 
+                <ul>
+                    <li>Uses the last 10 characters of the hash by default.</li>
+                    <li>Falls back to 12 characters if a name conflict occurs.</li>
+                    <li>Appends an incremental counter if conflicts persist.</li>
+                </ul>
+            </li>
+            <li><strong>Customizable</strong>: Prompted inputs for both target directory and file extension.</li>
+        </ul>
+
+        <h3>How to Use</h3>
+        <p><strong>Option A: Direct Execution</strong></p>
+        <ul>
+            <li>Click <strong>Download</strong> above to save the <code class="inline-code">.ps1</code> file.</li>
+            <li>Right-click the file and select <strong>"Run with PowerShell"</strong>.</li>
+            <li>Follow the on-screen prompts to set the folder path and file type.</li>
+        </ul>
+
+        <p><strong>Option B: Command Line</strong></p>
+        <p>Pass parameters directly via the terminal:</p>
+        <code class="inline-code">.\RenameByHash.ps1 -TargetDir "C:\Media\Images" -Extension "png"</code>
+
+        <h3>Requirements & Notes</h3>
+        <ul>
+            <li><strong>Execution Policy</strong>: If scripts are disabled on your system, run PowerShell as Administrator and execute: <code class="inline-code">Set-ExecutionPolicy RemoteSigned</code>.</li>
+            <li><strong>Safety</strong>: Batch renaming is permanent. Always test on a small folder or keep a backup before processing large libraries.</li>
+        </ul>
+    </div>
+</div>
+
+<script>
+    function getCode() { return document.getElementById('ps-code').innerText; }
+
+    function copyCode() {
+        navigator.clipboard.writeText(getCode()).then(() => {
+            const btn = document.getElementById('copyBtn');
+            btn.innerText = 'Copied!';
+            setTimeout(() => { btn.innerText = 'Copy raw'; }, 2000);
+        });
+    }
+
+    function downloadCode() {
+        const blob = new Blob([getCode()], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'RenameByHash.ps1';
+        a.click();
+        URL.revokeObjectURL(url);
+    }
+</script>
+
+</body>
+</html>
