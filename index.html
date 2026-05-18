@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Console // Static Workspace</title>
+    <style>
+        :root {
+            --bg-color: #0d1117;
+            --card-bg: #161b22;
+            --text-color: #c9d1d9;
+            --text-muted: #8b949e;
+            --accent-color: #58a6ff;
+            --border-color: #30363d;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 40px 20px;
+            display: flex;
+            justify-content: center;
+        }
+        .container {
+            width: 100%;
+            max-width: 700px;
+        }
+        header {
+            margin-bottom: 40px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 20px;
+        }
+        h1 {
+            font-size: 24px;
+            font-weight: 500;
+            margin: 0 0 8px 0;
+            letter-spacing: -0.5px;
+        }
+        .subtitle {
+            color: var(--text-muted);
+            font-size: 14px;
+            margin: 0;
+        }
+        .nav-list {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        .nav-item {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 16px 20px;
+            text-decoration: none;
+            color: inherit;
+            transition: border-color 0.2s ease, transform 0.2s ease;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .nav-item:hover {
+            border-color: var(--accent-color);
+            transform: translateY(-1px);
+        }
+        .nav-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--accent-color);
+        }
+        .nav-desc {
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+        footer {
+            margin-top: 60px;
+            text-align: center;
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1 id="site-title">Static Workspace</h1>
+        <p id="site-subtitle" class="subtitle">Lightweight decentralized toolkit and local technical archive</p>
+    </header>
+
+    <!-- Dynamic container for items -->
+    <main class="nav-list" id="nav-container"></main>
+
+    <footer>
+        <p>&copy; 2026. Hosted on GitHub Pages. Minimalist Architecture.</p>
+    </footer>
+</div>
+
+<!-- 1. Load configuration object, mounting data to window.WORKSPACE_DATA -->
+<script src="config.js"></script>
+
+<!-- 2. Execution Logic -->
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        // Fallback boundary to prevent crashes if config fails to load
+        const data = window.WORKSPACE_DATA || { items: [] };
+        
+        // Dynamically override header fields if present in config
+        if (data.title) document.getElementById('site-title').innerText = data.title;
+        if (data.subtitle) document.getElementById('site-subtitle').innerText = data.subtitle;
+
+        const container = document.getElementById("nav-container");
+        
+        // Render DOM tree
+        const fragment = document.createDocumentFragment();
+        data.items.forEach(item => {
+            const a = document.createElement("a");
+            a.href = item.url;
+            a.className = "nav-item";
+            
+            // Using textContent to mitigate XSS injection risks from config fields
+            const titleSpan = document.createElement("span");
+            titleSpan.className = "nav-title";
+            titleSpan.textContent = item.title;
+
+            const descSpan = document.createElement("span");
+            descSpan.className = "nav-desc";
+            descSpan.textContent = item.desc;
+
+            a.appendChild(titleSpan);
+            a.appendChild(descSpan);
+            fragment.appendChild(a);
+        });
+        
+        container.appendChild(fragment);
+    });
+</script>
+</body>
+</html>
