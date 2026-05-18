@@ -11,6 +11,11 @@ window.WORKSPACE_DATA = {
             "title": "Git Repository Cleanup Guide",
             "desc": "Large file removal and history purge guide - Deep optimization workflow leveraging git-filter-repo.",
             "url": "git-cleanup-guide.html"
+        },
+        {
+            "title": "Certbot Command Generator",
+            "desc": "Automated Let's Encrypt DNS challenge command generator with one-click copy functionality.",
+            "url": "cert-helper.html"
         }
     ]
 };
