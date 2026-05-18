@@ -32,6 +32,7 @@
             margin-bottom: 8px;
             font-weight: 600;
             color: #4a5568;
+            margin-top: 20px;
         }
         input[type="text"] {
             width: 100%;
@@ -90,23 +91,38 @@
     <h2>Nginx Forward Conf Generator</h2>
     
     <div class="input-group">
-        <label for="domainInput">Target Proxy Domain (without protocol):</label>
+        <label for="domainInput" style="margin-top: 0;">Target Proxy Domain (without protocol):</label>
         <input type="text" id="domainInput" placeholder="e.g., example.com" value="example.com">
     </div>
 
-    <label>Generated Configuration:</label>
+    <label>1. Initialize & Edit Configuration (Terminal):</label>
     <div class="code-box-wrapper">
-        <button class="copy-btn" id="copyBtn" onclick="copyConfig()">Copy Config</button>
+        <button class="copy-btn" id="copyCmdBtn1" onclick="copyText('cmdBlock1', 'copyCmdBtn1')">Copy Code</button>
+        <pre id="cmdBlock1">sudo rm -rf /etc/nginx/conf.d/default.conf
+sudo touch /etc/nginx/conf.d/default.conf
+sudo vim /etc/nginx/conf.d/default.conf</pre>
+    </div>
+
+    <label>2. Generated Configuration (Paste into Vim):</label>
+    <div class="code-box-wrapper">
+        <button class="copy-btn" id="copyConfigBtn" onclick="copyText('codeBlock', 'copyConfigBtn')">Copy Config</button>
         <pre id="codeBlock"></pre>
+    </div>
+
+    <label>3. Restart Nginx Service (Terminal):</label>
+    <div class="code-box-wrapper">
+        <button class="copy-btn" id="copyCmdBtn2" onclick="copyText('cmdBlock2', 'copyCmdBtn2')">Copy Code</button>
+        <pre id="cmdBlock2">sudo systemctl stop nginx
+sudo systemctl start nginx
+sudo systemctl status nginx</pre>
     </div>
 </div>
 
 <script>
     const domainInput = document.getElementById('domainInput');
     const codeBlock = document.getElementById('codeBlock');
-    const copyBtn = document.getElementById('copyBtn');
 
-    // Configuration Template ($ variables are escaped by template string format, but raw output handles them fine)
+    // Configuration Template
     const template = `server {
     listen 80;
     server_name _;
@@ -128,25 +144,24 @@
 
     // Update the config display dynamically
     function updateConfig() {
-        // Strip out accidental https:// or http:// if user pastes a full URL
         let domain = domainInput.value.trim().replace(/^https?:\/\//i, '');
         domain = domain || 'example.com';
-        
-        // Globally replace {DOMAIN} placeholder
         codeBlock.textContent = template.replace(/{DOMAIN}/g, domain);
     }
 
     // Copy to clipboard functionality
-    function copyConfig() {
-        const textToCopy = codeBlock.textContent;
+    function copyText(elementId, btnId) {
+        const textToCopy = document.getElementById(elementId).textContent;
+        const btn = document.getElementById(btnId);
+        const originalText = btn.textContent;
         
         navigator.clipboard.writeText(textToCopy).then(() => {
-            copyBtn.textContent = 'Copied!';
-            copyBtn.classList.add('success');
+            btn.textContent = 'Copied!';
+            btn.classList.add('success');
             
             setTimeout(() => {
-                copyBtn.textContent = 'Copy Config';
-                copyBtn.classList.remove('success');
+                btn.textContent = originalText;
+                btn.classList.remove('success');
             }, 2000);
         }).catch(err => {
             console.error('Failed to copy: ', err);
