@@ -16,6 +16,11 @@ window.WORKSPACE_DATA = {
             "title": "Certbot Command Generator",
             "desc": "Automated Let's Encrypt DNS challenge command generator with one-click copy functionality.",
             "url": "cert-helper.html"
+        },
+        {
+            "title": "Nginx Forward Conf Generator",
+            "desc": "Dynamic proxy pass configuration snippet manager for quick SNI routing setup.",
+            "url": "nginx-forward-conf.html"
         }
     ]
 };
