@@ -21,6 +21,11 @@ window.WORKSPACE_DATA = {
             "title": "Nginx Forward Conf Generator",
             "desc": "Dynamic proxy pass configuration snippet manager for quick SNI routing setup.",
             "url": "nginx-forward-conf.html"
+        },
+		{
+            "title": "PowerShell Batch File Creation Command Generator",
+            "desc": "A web-based utility to instantly generate PowerShell New-Item commands for batch file and directory structures.",
+            "url": "powershell_cmd_generator.html"
         }
     ]
 };

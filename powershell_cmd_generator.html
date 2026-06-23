@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PowerShell Batch File Creation Command Generator</title>
+    <style>
+        :root {
+            --primary-color: #0078d4;
+            --primary-hover: #106ebe;
+            --bg-color: #f3f2f1;
+            --card-bg: #ffffff;
+            --text-color: #323130;
+            --border-color: #edebe9;
+            --code-bg: #00171f;
+            --code-text: #00ebff;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            padding: 30px 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 800px;
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            font-size: 24px;
+            margin-bottom: 20px;
+            color: #0078d4;
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .help-text {
+            font-size: 12px;
+            color: #605e5c;
+            margin-top: 4px;
+        }
+
+        input[type="text"], textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 14px;
+            transition: border-color 0.2s;
+            background-color: #faf9f8;
+        }
+
+        input[type="text"]:focus, textarea:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            background-color: #fff;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 120px;
+            font-family: monospace;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 25px;
+        }
+
+        button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 14px;
+            font-weight: 600;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.1s;
+        }
+
+        button:hover {
+            background-color: var(--primary-hover);
+        }
+
+        button:active {
+            transform: scale(0.98);
+        }
+
+        button.btn-secondary {
+            background-color: #f3f2f1;
+            color: #323130;
+            border: 1px solid var(--border-color);
+        }
+
+        button.btn-secondary:hover {
+            background-color: #edebe9;
+        }
+
+        .output-container {
+            position: relative;
+            margin-top: 20px;
+        }
+
+        .output-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .output-title {
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .copy-btn {
+            background-color: #201f1e;
+            color: #fff;
+            padding: 6px 12px;
+            font-size: 12px;
+            border-radius: 4px;
+        }
+        
+        .copy-btn:hover {
+            background-color: #323130;
+        }
+
+        .copy-btn.success {
+            background-color: #107c41;
+        }
+
+        pre {
+            background-color: var(--code-bg);
+            color: var(--code-text);
+            padding: 15px;
+            border-radius: 6px;
+            overflow-x: auto;
+            font-family: 'Consolas', 'Courier New', Courier, monospace;
+            font-size: 13px;
+            line-height: 1.5;
+            min-height: 80px;
+            white-space: pre-wrap;
+            word-break: break-all;
+            border: 1px solid #002b3d;
+        }
+
+        .hint-box {
+            background-color: #f3f2f1;
+            border-left: 4px solid #8a8886;
+            padding: 12px;
+            margin-top: 25px;
+            font-size: 13px;
+            border-radius: 0 4px 4px 0;
+        }
+
+        .hint-box ul {
+            margin-left: 20px;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="vertical-align: middle;">
+            <path d="M2 5C2 3.89543 2.89543 3 4 3H20C21.1046 3 22 3.89543 22 5V19C22 20.1046 21.1046 21 20 21H4C2.89543 21 2 20.1046 2 19V5Z" fill="#0078D4"/>
+            <path d="M6 8.5L9.5 12L6 15.5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M11 15H17" stroke="white" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        PowerShell Batch File Creation Command Generator
+    </h1>
+
+    <div class="form-group">
+        <label for="dirPath">Target Execution Directory (Optional)</label>
+        <input type="text" id="dirPath" placeholder="e.g., C:\Projects\Demo or D:\Test (Leave blank to create in current directory)">
+        <div class="help-text">If left blank, the generated script will create files directly within your current working PowerShell path.</div>
+    </div>
+
+    <div class="form-group">
+        <label for="fileList">List of Files to Create (One per line)</label>
+        <textarea id="fileList" placeholder="index.html&#10;css/style.css&#10;js/main.js&#10;src/components/Header.jsx&#10;README.md"></textarea>
+        <div class="help-text">Supports multi-level subdirectories (e.g., css/style.css). The script will automatically build missing directories.</div>
+    </div>
+
+    <div class="btn-group">
+        <button onclick="generateCommand()">Generate Command</button>
+        <button class="btn-secondary" onclick="clearFields()">Clear Inputs</button>
+    </div>
+
+    <div class="output-container">
+        <div class="output-header">
+            <span class="output-title">Generated PowerShell Commands:</span>
+            <button class="copy-btn" id="copyBtn" onclick="copyToClipboard()">Copy Code</button>
+        </div>
+        <pre id="outputCode"># Enter your file list above and click "Generate Command"...</pre>
+    </div>
+
+    <div class="hint-box">
+        <strong>💡 Instructions & Tips:</strong>
+        <ul>
+            <li>This tool generates commands utilizing the core <code>New-Item</code> cmdlet coupled with the <code>-Force</code> parameter.</li>
+            <li><strong>Automatic Directory Creation:</strong> Even if you provide deeply nested file paths (such as <code>a/b/c/test.txt</code>), the <code>-Force</code> flag ensures that folders <code>a</code>, <code>b</code>, and <code>c</code> are generated seamlessly without throwing structural errors.</li>
+            <li>If a target file already exists, <code>-Force</code> will overwrite or clear its content, effectively resetting it as a clean, new file.</li>
+        </ul>
+    </div>
+</div>
+
+<script>
+    function generateCommand() {
+        const dirPath = document.getElementById('dirPath').value.trim();
+        const fileListText = document.getElementById('fileList').value.trim();
+        const outputCode = document.getElementById('outputCode');
+        
+        if (!fileListText) {
+            outputCode.innerText = '# Please enter a list of files to create first.';
+            return;
+        }
+
+        // Split lines and filter out empty ones
+        const files = fileListText.split('\n')
+            .map(f => f.trim())
+            .filter(f => f.length > 0);
+
+        if (files.length === 0) {
+            outputCode.innerText = '# Please enter a list of files to create first.';
+            return;
+        }
+
+		const normalize = (p) =>
+			  p.replace(/\\/g, '/')
+			   .replace(/\/+/g, '/')
+			   .replace(/^\/+/, '')
+			   .replace(/\/+$/, '');
+
+		const safeDirPath = dirPath ? normalize(dirPath) : "";
+
+		const script = files.map(file => {
+		  const safeFile = normalize(file);
+
+		  const path = safeDirPath
+			? `${safeDirPath}/${safeFile}`
+			: safeFile;
+
+		  return `New-Item -ItemType File -Force -Path "${path}"`;
+		}).join("\n");
+
+        outputCode.innerText = script;
+        
+        // Reset copy button state
+        const copyBtn = document.getElementById('copyBtn');
+        copyBtn.innerText = 'Copy Code';
+        copyBtn.classList.remove('success');
+    }
+
+    function copyToClipboard() {
+        const outputCode = document.getElementById('outputCode').innerText;
+        const copyBtn = document.getElementById('copyBtn');
+
+        if (outputCode.startsWith('# Enter your file') || outputCode.startsWith('# Please enter')) {
+            alert('No commands found to copy. Please generate the command first.');
+            return;
+        }
+
+        // Copy using modern Clipboard API
+        navigator.clipboard.writeText(outputCode).then(() => {
+            copyBtn.innerText = 'Copied!';
+            copyBtn.classList.add('success');
+            
+            // Revert after 3 seconds
+            setTimeout(() => {
+                copyBtn.innerText = 'Copy Code';
+                copyBtn.classList.remove('success');
+            }, 3000);
+        }).catch(err => {
+            console.error('Could not copy text: ', err);
+            // Fallback handler
+            const textArea = document.createElement("textarea");
+            textArea.value = outputCode;
+            document.body.appendChild(textArea);
+            textArea.select();
+            try {
+                document.execCommand('copy');
+                copyBtn.innerText = 'Copied!';
+                copyBtn.classList.add('success');
+                setTimeout(() => {
+                    copyBtn.innerText = 'Copy Code';
+                    copyBtn.classList.remove('success');
+                }, 3000);
+            } catch (e) {
+                alert('Copy failed. Please manually select and copy the text.');
+            }
+            document.body.removeChild(textArea);
+        });
+    }
+
+    function clearFields() {
+        document.getElementById('dirPath').value = '';
+        document.getElementById('fileList').value = '';
+        document.getElementById('outputCode').innerText = '# Enter your file list above and click "Generate Command"...';
+        const copyBtn = document.getElementById('copyBtn');
+        copyBtn.innerText = 'Copy Code';
+        copyBtn.classList.remove('success');
+    }
+</script>
+
+</body>
+</html>
