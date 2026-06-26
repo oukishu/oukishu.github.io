@@ -26,6 +26,11 @@ window.WORKSPACE_DATA = {
             "title": "PowerShell Batch File Creation Command Generator",
             "desc": "A web-based utility to instantly generate PowerShell New-Item commands for batch file and directory structures.",
             "url": "powershell_cmd_generator.html"
+        },
+        {
+            "title": "JSON Duplicate ID Checker",
+            "desc": "A web-based utility to detect and analyze duplicate IDs within JSON arrays or hash maps.",
+            "url": "check-json-id.html"
         }
     ]
 };

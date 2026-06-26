@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JSON Duplicate ID Checker</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --surface-0: #f1f0eb;
+    --surface-1: #f7f6f2;
+    --surface-2: #ffffff;
+    --text-primary: #1a1a18;
+    --text-secondary: #5f5e5a;
+    --text-muted: #888780;
+    --border: rgba(0,0,0,0.1);
+    --border-strong: rgba(0,0,0,0.18);
+    --border-accent: #378add;
+    --border-danger: #f09595;
+    --border-success: #97c459;
+    --bg-accent: #e6f1fb;
+    --bg-danger: #fcebeb;
+    --bg-success: #eaf3de;
+    --fill-accent: #378add;
+    --fill-accent-hover: #185fa5;
+    --fill-danger: #e24b4a;
+    --on-accent: #ffffff;
+    --on-danger: #ffffff;
+    --text-accent: #185fa5;
+    --text-danger: #a32d2d;
+    --text-success: #3b6d11;
+    --text-warning: #854f0b;
+    --bg-warning: #faeeda;
+    --radius: 8px;
+    --font-sans: system-ui, -apple-system, sans-serif;
+    --font-mono: ui-monospace, "SF Mono", Menlo, monospace;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --surface-0: #1a1a18;
+      --surface-1: #242422;
+      --surface-2: #2e2e2b;
+      --text-primary: #ececea;
+      --text-secondary: #b4b2a9;
+      --text-muted: #888780;
+      --border: rgba(255,255,255,0.1);
+      --border-strong: rgba(255,255,255,0.18);
+      --border-accent: #85b7eb;
+      --border-danger: #f09595;
+      --border-success: #97c459;
+      --bg-accent: #042c53;
+      --bg-danger: #501313;
+      --bg-success: #173404;
+      --fill-accent: #378add;
+      --fill-accent-hover: #85b7eb;
+      --fill-danger: #e24b4a;
+      --on-accent: #ffffff;
+      --on-danger: #ffffff;
+      --text-accent: #85b7eb;
+      --text-danger: #f09595;
+      --text-success: #97c459;
+      --text-warning: #ef9f27;
+      --bg-warning: #412402;
+    }
+  }
+
+  body {
+    font-family: var(--font-sans);
+    background: var(--surface-0);
+    color: var(--text-primary);
+    min-height: 100vh;
+    padding: 2rem 1rem;
+  }
+
+  .container {
+    max-width: 720px;
+    margin: 0 auto;
+  }
+
+  h1 {
+    font-size: 22px;
+    font-weight: 500;
+    margin-bottom: .25rem;
+  }
+
+  .subtitle {
+    font-size: 14px;
+    color: var(--text-muted);
+    margin-bottom: 1.5rem;
+  }
+
+  .drop-zone {
+    border: 2px dashed var(--border-strong);
+    border-radius: 12px;
+    padding: 2rem;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color .2s, background .2s;
+    background: var(--surface-1);
+    position: relative;
+  }
+
+  .drop-zone.over {
+    border-color: var(--border-accent);
+    background: var(--bg-accent);
+  }
+
+  .drop-zone input[type=file] {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+    width: 100%;
+    height: 100%;
+  }
+
+  .drop-zone svg {
+    width: 32px;
+    height: 32px;
+    color: var(--text-muted);
+    display: block;
+    margin: 0 auto .5rem;
+  }
+
+  .drop-zone p {
+    color: var(--text-secondary);
+    font-size: 14px;
+  }
+
+  .drop-zone p span {
+    color: var(--text-accent);
+    font-weight: 500;
+  }
+
+  textarea {
+    width: 100%;
+    min-height: 150px;
+    margin-top: 1rem;
+    border-radius: var(--radius);
+    border: 0.5px solid var(--border);
+    background: var(--surface-1);
+    color: var(--text-primary);
+    font-family: var(--font-mono);
+    font-size: 13px;
+    padding: .75rem;
+    resize: vertical;
+    display: block;
+  }
+
+  textarea:focus {
+    outline: none;
+    border-color: var(--border-accent);
+  }
+
+  textarea::placeholder {
+    color: var(--text-muted);
+  }
+
+  .btn-row {
+    display: flex;
+    gap: 8px;
+    margin-top: .75rem;
+  }
+
+  button {
+    cursor: pointer;
+    font-family: var(--font-sans);
+    font-size: 14px;
+    border-radius: var(--radius);
+    padding: 8px 20px;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: background .15s;
+  }
+
+  button svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  .btn-primary {
+    background: var(--fill-accent);
+    color: var(--on-accent);
+    border: none;
+  }
+
+  .btn-primary:hover {
+    background: var(--fill-accent-hover);
+  }
+
+  .btn-ghost {
+    background: transparent;
+    border: 0.5px solid var(--border-strong);
+    color: var(--text-secondary);
+  }
+
+  .btn-ghost:hover {
+    background: var(--surface-1);
+  }
+
+  .format-hint {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: .5rem;
+    line-height: 1.6;
+  }
+
+  code {
+    font-family: var(--font-mono);
+    font-size: 12px;
+  }
+
+  .section-title {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    margin: 1.75rem 0 .75rem;
+  }
+
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 10px;
+    margin-bottom: 1.5rem;
+  }
+
+  .stat {
+    background: var(--surface-1);
+    border-radius: var(--radius);
+    padding: .875rem 1rem;
+  }
+
+  .stat .label {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-bottom: 4px;
+  }
+
+  .stat .value {
+    font-size: 24px;
+    font-weight: 500;
+    color: var(--text-primary);
+  }
+
+  .stat.danger .value { color: var(--text-danger); }
+  .stat.success .value { color: var(--text-success); }
+  .stat.warn .value { color: var(--text-warning); }
+
+  .dup-card {
+    background: var(--surface-2);
+    border: 0.5px solid var(--border-danger);
+    border-radius: 12px;
+    margin-bottom: 1rem;
+    overflow: hidden;
+  }
+
+  .dup-header {
+    background: var(--bg-danger);
+    padding: .625rem 1rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .id-badge {
+    background: var(--fill-danger);
+    color: var(--on-danger);
+    border-radius: var(--radius);
+    padding: 2px 10px;
+    font-size: 13px;
+    font-weight: 500;
+    font-family: var(--font-mono);
+  }
+
+  .dup-count {
+    font-size: 13px;
+    color: var(--text-danger);
+  }
+
+  .dup-rows { padding: .5rem 0; }
+
+  .dup-row {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    padding: .5rem 1rem;
+    font-size: 14px;
+    border-bottom: 0.5px solid var(--border);
+  }
+
+  .dup-row:last-child { border-bottom: none; }
+
+  .row-idx {
+    color: var(--text-muted);
+    font-size: 12px;
+    min-width: 40px;
+    font-family: var(--font-mono);
+  }
+
+  .row-key {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text-secondary);
+    max-width: 180px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    margin-right: 10px;
+  }
+
+  .fields {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    flex: 1;
+  }
+
+  .field {
+    background: var(--surface-1);
+    border: 0.5px solid var(--border);
+    border-radius: 4px;
+    padding: 2px 8px;
+    font-size: 13px;
+  }
+
+  .field .k { color: var(--text-muted); }
+  .field .v { color: var(--text-primary); font-weight: 500; }
+
+  .ok-card {
+    background: var(--bg-success);
+    border: 0.5px solid var(--border-success);
+    border-radius: 12px;
+    padding: .875rem 1rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--text-success);
+    font-size: 14px;
+  }
+
+  .ok-card svg {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+  }
+
+  .error-msg {
+    background: var(--bg-danger);
+    border: 0.5px solid var(--border-danger);
+    border-radius: var(--radius);
+    padding: .75rem 1rem;
+    color: var(--text-danger);
+    font-size: 13px;
+    margin-top: .5rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .error-msg svg {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>JSON Duplicate ID Checker</h1>
+  <p class="subtitle">Drop a file or paste JSON to find duplicate IDs</p>
+
+  <div class="drop-zone" id="dropZone">
+    <input type="file" id="fileInput" accept=".json,.txt,application/json,text/plain">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2" /><path d="M7 9l5 -5l5 5" /><path d="M12 4l0 12" /></svg>
+    <p><span>Click to upload</span> or drag and drop a JSON file</p>
+  </div>
+
+  <textarea id="jsonInput" placeholder='Paste JSON here. Two formats supported:
+Format 1 — Array:       [{"id": 101, "name": "Alice"}, {"id": 101, "name": "Bob"}]
+Format 2 — Hash map:    {"abc123": {"id": 101, "name": "Alice"}, "def456": {"id": 101, "name": "Bob"}}'></textarea>
+
+  <div class="btn-row">
+    <button class="btn-primary" onclick="analyze()">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 10m-7 0a7 7 0 1 0 14 0a7 7 0 1 0 -14 0" /><path d="M21 21l-6 -6" /></svg> Analyze
+    </button>
+    <button class="btn-ghost" onclick="clearAll()">Clear</button>
+  </div>
+  <p class="format-hint">
+    Format 1: <code>[{…}, {…}]</code> &nbsp;|&nbsp;
+    Format 2: <code>{"hash": {…}, "hash": {…}}</code> &nbsp;|&nbsp;
+    Shortcut: <code>Ctrl/Cmd + Enter</code>
+  </p>
+
+  <div id="result"></div>
+</div>
+
+<script>
+const dropZone = document.getElementById('dropZone');
+const fileInput = document.getElementById('fileInput');
+const jsonInput = document.getElementById('jsonInput');
+
+dropZone.addEventListener('dragover', e => {
+  e.preventDefault();
+  dropZone.classList.add('over');
+});
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('over'));
+dropZone.addEventListener('drop', e => {
+  e.preventDefault();
+  dropZone.classList.remove('over');
+  const file = e.dataTransfer.files[0];
+  if (file) readFile(file);
+});
+fileInput.addEventListener('change', e => {
+  if (e.target.files[0]) readFile(e.target.files[0]);
+});
+jsonInput.addEventListener('keydown', e => {
+  if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') analyze();
+});
+
+function readFile(file) {
+  const r = new FileReader();
+  r.onload = ev => {
+    jsonInput.value = ev.target.result;
+    analyze();
+  };
+  r.readAsText(file, 'utf-8');
+}
+
+function clearAll() {
+  jsonInput.value = '';
+  document.getElementById('result').innerHTML = '';
+  fileInput.value = '';
+}
+
+function analyze() {
+  const raw = jsonInput.value.trim();
+  if (!raw) { showError('Please enter or upload JSON content.'); return; }
+
+  let parsed;
+  try { parsed = JSON.parse(raw); } catch (e) {
+    showError('JSON parse error: ' + e.message);
+    return;
+  }
+
+  let items = [];
+
+  if (Array.isArray(parsed)) {
+    parsed.forEach((obj, i) => {
+      if (typeof obj === 'object' && obj !== null)
+        items.push({ _key: null, _index: i, ...obj });
+    });
+  } else if (typeof parsed === 'object' && parsed !== null) {
+    let idx = 0;
+    for (const [hash, obj] of Object.entries(parsed)) {
+      if (typeof obj === 'object' && obj !== null)
+        items.push({ _key: hash, _index: idx++, ...obj });
+    }
+  } else {
+    showError('Unsupported format. Please provide an array or a hash-map object.');
+    return;
+  }
+
+  if (items.length === 0) { showError('No valid object entries found.'); return; }
+
+  const idField = findIdField(items);
+
+  const groups = {};
+  for (const item of items) {
+    const idVal = item[idField];
+    const key = idVal !== undefined ? String(idVal) : '__undefined__';
+    if (!groups[key]) groups[key] = [];
+    groups[key].push(item);
+  }
+
+  const dupGroups = Object.entries(groups).filter(([, v]) => v.length > 1);
+  const totalDupItems = dupGroups.reduce((s, [, v]) => s + v.length, 0);
+  const isHash = items[0]._key !== null;
+
+  renderResult(items.length, dupGroups, totalDupItems, idField, isHash);
+}
+
+function findIdField(items) {
+  const candidates = ['id', 'ID', 'Id', '_id'];
+  for (const c of candidates) {
+    if (items.some(i => i[c] !== undefined)) return c;
+  }
+  const keys = Object.keys(items[0]).filter(k => !k.startsWith('_'));
+  return keys[0] || 'id';
+}
+
+function renderResult(total, dupGroups, totalDupItems, idField, isHash) {
+  const el = document.getElementById('result');
+  const html = [];
+
+  html.push('<div class="section-title">Results</div>');
+  html.push('<div class="stats">');
+  html.push(`<div class="stat"><div class="label">Total entries</div><div class="value">${total}</div></div>`);
+  html.push(`<div class="stat ${dupGroups.length > 0 ? 'danger' : 'success'}"><div class="label">Duplicate IDs</div><div class="value">${dupGroups.length}</div></div>`);
+  html.push(`<div class="stat ${totalDupItems > 0 ? 'warn' : 'success'}"><div class="label">Affected entries</div><div class="value">${totalDupItems}</div></div>`);
+  html.push('</div>');
+
+  if (dupGroups.length === 0) {
+    html.push('<div class="ok-card"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0" /><path d="M9 12l2 2l4 -4" /></svg> No duplicate IDs found. Data looks clean.</div>');
+  } else {
+    html.push('<div class="section-title">Duplicate details</div>');
+    for (const [idVal, rows] of dupGroups) {
+      html.push('<div class="dup-card">');
+      html.push(`<div class="dup-header"><span class="id-badge">${idField} = ${idVal}</span><span class="dup-count">${rows.length} entries</span></div>`);
+      html.push('<div class="dup-rows">');
+      for (const row of rows) {
+        const fields = Object.entries(row).filter(([k]) => !k.startsWith('_') && k !== idField);
+        html.push('<div class="dup-row">');
+        html.push(`<span class="row-idx">#${row._index + 1}</span>`);
+        if (isHash && row._key) {
+          const short = row._key.length > 16
+            ? row._key.slice(0, 8) + '…' + row._key.slice(-8)
+            : row._key;
+          html.push(`<span class="row-key" title="${row._key}">${short}</span>`);
+        }
+        html.push('<div class="fields">');
+        html.push(`<span class="field"><span class="k">${idField}: </span><span class="v">${idVal}</span></span>`);
+        for (const [k, v] of fields) {
+          html.push(`<span class="field"><span class="k">${k}: </span><span class="v">${v}</span></span>`);
+        }
+        html.push('</div></div>');
+      }
+      html.push('</div></div>');
+    }
+  }
+
+  el.innerHTML = html.join('');
+}
+
+function showError(msg) {
+  document.getElementById('result').innerHTML =
+    `<div class="error-msg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0" /><path d="M12 9v4" /><path d="M12 16v.01" /></svg> ${msg}</div>`;
+}
+</script>
+</body>
+</html>
