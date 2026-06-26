@@ -1,286 +1,519 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RenameByHash.ps1 - GitHub Style Viewer</title>
-    <style>
-        :root {
-            --color-canvas-default: #ffffff;
-            --color-canvas-subtle: #f6f8fa;
-            --color-border-default: #d0d7de;
-            --color-fg-default: #1f2328;
-            --color-fg-muted: #656d76;
-            --color-accent-fg: #0969da;
-            --color-btn-bg: #f6f8fa;
-            --color-btn-hover-bg: #f3f4f6;
-            --color-btn-text: #24292f;
-            --font-stack: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif;
-            --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RenameByHash.ps1</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-        body {
-            font-family: var(--font-stack);
-            background-color: var(--color-canvas-default);
-            color: var(--color-fg-default);
-            margin: 0;
-            padding: 40px 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #0d1117;
+      color: #e6edf3;
+      min-height: 100vh;
+      padding: 40px 20px;
+    }
 
-        .container {
-            width: 100%;
-            max-width: 1012px;
-        }
+    .container {
+      max-width: 860px;
+      margin: 0 auto;
+    }
 
-        /* File Box Style */
-        .box {
-            border: 1px solid var(--color-border-default);
-            border-radius: 6px;
-            overflow: hidden;
-            margin-bottom: 24px;
-        }
+    /* Header */
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 32px;
+    }
+    .header-icon {
+      width: 40px; height: 40px;
+      background: linear-gradient(135deg, #2563eb, #7c3aed);
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px;
+    }
+    .header-title h1 {
+      font-size: 22px;
+      font-weight: 700;
+      color: #f0f6fc;
+      letter-spacing: 0.3px;
+    }
+    .header-title p {
+      font-size: 13px;
+      color: #7d8590;
+      margin-top: 2px;
+    }
 
-        .box-header {
-            background-color: var(--color-canvas-subtle);
-            padding: 16px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid var(--color-border-default);
-        }
+    /* Usage Card */
+    .usage-card {
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 12px;
+      padding: 24px 28px;
+      margin-bottom: 24px;
+    }
+    .usage-card h2 {
+      font-size: 15px;
+      font-weight: 600;
+      color: #58a6ff;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
 
-        .file-info {
-            display: flex;
-            align-items: center;
-            font-size: 14px;
-            font-weight: 600;
-        }
+    .usage-section { margin-bottom: 20px; }
+    .usage-section:last-child { margin-bottom: 0; }
+    .usage-section h3 {
+      font-size: 13px;
+      font-weight: 600;
+      color: #7d8590;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      margin-bottom: 10px;
+    }
 
-        .btn {
-            padding: 5px 12px;
-            font-size: 12px;
-            font-weight: 600;
-            background-color: var(--color-btn-bg);
-            border: 1px solid var(--color-border-default);
-            border-radius: 6px;
-            cursor: pointer;
-            color: var(--color-btn-text);
-            text-decoration: none;
-            transition: 0.2s;
-        }
+    .usage-section p, .usage-section li {
+      font-size: 14px;
+      color: #c9d1d9;
+      line-height: 1.7;
+    }
+    .usage-section ul, .usage-section ol {
+      padding-left: 18px;
+    }
+    .usage-section li { margin-bottom: 4px; }
 
-        .btn:hover { background-color: var(--color-btn-hover-bg); }
+    .cmd-inline {
+      background: #0d1117;
+      border: 1px solid #30363d;
+      border-radius: 5px;
+      padding: 2px 7px;
+      font-family: "Cascadia Code", "Fira Code", "Consolas", monospace;
+      font-size: 12.5px;
+      color: #79c0ff;
+    }
 
-        pre {
-            margin: 0;
-            padding: 16px;
-            font-family: var(--font-mono);
-            font-size: 12px;
-            line-height: 1.45;
-            overflow: auto;
-            tab-size: 4;
-            background-color: #fff;
-        }
+    .cmd-block {
+      background: #0d1117;
+      border: 1px solid #30363d;
+      border-left: 3px solid #2563eb;
+      border-radius: 6px;
+      padding: 12px 16px;
+      font-family: "Cascadia Code", "Fira Code", "Consolas", monospace;
+      font-size: 13px;
+      color: #79c0ff;
+      margin-top: 8px;
+      line-height: 1.8;
+      overflow-x: auto;
+      white-space: pre;
+    }
 
-        /* Documentation Style (README) */
-        .readme-section {
-            border: 1px solid var(--color-border-default);
-            border-radius: 6px;
-            padding: 32px;
-            background-color: #fff;
-        }
+    .tag {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 20px;
+      margin-right: 4px;
+    }
+    .tag-green { background: #1a4731; color: #3fb950; border: 1px solid #238636; }
+    .tag-red   { background: #3d1a1a; color: #f85149; border: 1px solid #da3633; }
+    .tag-gray  { background: #1c2128; color: #8b949e; border: 1px solid #30363d; }
 
-        .readme-section h2 {
-            margin-top: 0;
-            padding-bottom: 8px;
-            border-bottom: 1px solid var(--color-border-default);
-            font-size: 24px;
-        }
+    .divider {
+      border: none;
+      border-top: 1px solid #21262d;
+      margin: 20px 0;
+    }
 
-        .readme-section h3 {
-            font-size: 18px;
-            margin-top: 24px;
-        }
+    /* Code block */
+    .code-card {
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 12px;
+      overflow: hidden;
+    }
 
-        .readme-section p, .readme-section li {
-            font-size: 14px;
-            color: #24292f;
-            line-height: 1.6;
-        }
+    .code-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 18px;
+      background: #1c2128;
+      border-bottom: 1px solid #30363d;
+    }
+    .code-filename {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: #8b949e;
+      font-family: monospace;
+    }
+    .code-filename span { color: #e6edf3; font-weight: 600; }
 
-        code.inline-code {
-            padding: 0.2em 0.4em;
-            background-color: rgba(175,184,193,0.2);
-            border-radius: 6px;
-            font-family: var(--font-mono);
-            font-size: 85%;
-        }
+    .btn-group { display: flex; gap: 8px; }
 
-        /* Syntax Highlighting (GitHub Light) */
-        .c { color: #6e7781; font-style: italic; } /* Comment */
-        .k { color: #cf222e; } /* Keyword */
-        .s { color: #0a3069; } /* String */
-        .v { color: #953800; } /* Variable/Parameter */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      border-radius: 6px;
+      border: 1px solid #30363d;
+      font-size: 12.5px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+    .btn-copy {
+      background: #21262d;
+      color: #c9d1d9;
+    }
+    .btn-copy:hover { background: #30363d; border-color: #6e7681; color: #e6edf3; }
+    .btn-copy.copied { background: #1a4731; border-color: #238636; color: #3fb950; }
 
-    </style>
+    .btn-download {
+      background: #1f6feb;
+      border-color: #1f6feb;
+      color: #fff;
+    }
+    .btn-download:hover { background: #388bfd; border-color: #388bfd; }
+
+    pre {
+      padding: 22px 24px;
+      overflow-x: auto;
+      font-family: "Cascadia Code", "Fira Code", "Consolas", monospace;
+      font-size: 13px;
+      line-height: 1.75;
+      color: #e6edf3;
+    }
+
+    /* Syntax colors */
+    .kw   { color: #ff7b72; }   /* keywords: param, if, foreach, try, catch */
+    .str  { color: #a5d6ff; }   /* strings */
+    .var  { color: #79c0ff; }   /* $variables */
+    .cmt  { color: #8b949e; font-style: italic; }
+    .num  { color: #f2cc60; }
+    .fn   { color: #d2a8ff; }   /* cmdlets */
+    .op   { color: #ff7b72; }
+    .cyan { color: #76e3ea; }
+
+    /* Footer */
+    .footer {
+      text-align: center;
+      font-size: 12px;
+      color: #484f58;
+      margin-top: 28px;
+    }
+  </style>
 </head>
 <body>
-
 <div class="container">
-    <div class="box">
-        <div class="box-header">
-            <div class="file-info">
-                <svg style="margin-right: 8px; color: var(--color-fg-muted);" viewBox="0 0 16 16" fill="currentColor" width="16" height="16"><path d="M2 1.75C2 .784 2.784 0 3.75 0h6.586c.464 0 .909.184 1.237.513l3.414 3.414c.329.328.513.773.513 1.237v9.086A1.75 1.75 0 0 1 13.75 16H3.75A1.75 1.75 0 0 1 2 14.25Zm1.75-.25a.25.25 0 0 0-.25.25v12.5c0 .138.112.25.25.25h10a.25.25 0 0 0 .25-.25V5.5h-2.75A1.75 1.75 0 0 1 9.5 3.75V1h-5.75Z"></path></svg>
-                RenameByHash.ps1
-            </div>
-            <div class="file-actions">
-                <button class="btn" id="copyBtn" onclick="copyCode()">Copy raw</button>
-                <button class="btn" onclick="downloadCode()">Download</button>
-            </div>
-        </div>
-        <pre id="ps-code"><span class="c"># Parameters definition</span>
-<span class="k">param</span>(
-    [string]<span class="v">$TargetDir</span>,
-    [string]<span class="v">$Extension</span>
+
+  <!-- Header -->
+  <div class="header">
+    <div class="header-icon">⚡</div>
+    <div class="header-title">
+      <h1>RenameByHash.ps1</h1>
+      <p>PowerShell Script · Rename files based on SHA256 hashes and automatically deduplicate</p>
+    </div>
+  </div>
+
+  <!-- Usage Card -->
+  <div class="usage-card">
+    <h2>📖 Instructions</h2>
+
+    <div class="usage-section">
+      <h3>Features</h3>
+      <p>This script iterates through files with a specific extension in a designated directory, calculates each file's <strong>SHA256 hash value</strong>, and renames it using the last <strong>12 characters</strong> of that hash. If identical duplicate files are found, the script automatically deletes the copies, keeping only the first one.</p>
+    </div>
+
+    <hr class="divider" />
+
+    <div class="usage-section">
+      <h3>Prerequisites</h3>
+      <ul>
+        <li>Windows OS, PowerShell <strong>5.1+</strong> or PowerShell <strong>7+</strong></li>
+        <li><strong>Read/Write permissions</strong> for the target directory</li>
+        <li>Execution policy adjustments may be required for the first run (see below)</li>
+      </ul>
+    </div>
+
+    <hr class="divider" />
+
+    <div class="usage-section">
+      <h3>How to Run</h3>
+
+      <p style="margin-bottom:8px"><strong>Method 1: Interactive Execution</strong> (The script will prompt you step-by-step)</p>
+      <div class="cmd-block">.\RenameByHash.ps1</div>
+
+      <p style="margin-top:14px; margin-bottom:8px"><strong>Method 2: Run directly with parameters</strong></p>
+      <div class="cmd-block">.\RenameByHash.ps1 -TargetDir "C:\Photos" -Extension "jpg"</div>
+
+      <p style="margin-top:14px; margin-bottom:8px"><strong>Method 3: Current directory, default extension (png)</strong></p>
+      <div class="cmd-block">.\RenameByHash.ps1 -TargetDir "" -Extension ""</div>
+    </div>
+
+    <hr class="divider" />
+
+    <div class="usage-section">
+      <h3>Parameter Breakdown</h3>
+      <ul>
+        <li><code class="cmd-inline">-TargetDir</code> — The target folder path. Leave blank for interactive input; if left blank during prompts, it defaults to the current directory.</li>
+        <li><code class="cmd-inline">-Extension</code> — File extension, e.g., <code class="cmd-inline">png</code>, <code class="cmd-inline">jpg</code> (no dot needed). Defaults to <code class="cmd-inline">png</code> if left blank.</li>
+      </ul>
+    </div>
+
+    <hr class="divider" />
+
+    <div class="usage-section">
+      <h3>Output Indicators</h3>
+      <ul>
+        <li><span class="tag tag-green">Green</span> — File successfully renamed</li>
+        <li><span class="tag tag-red">Red</span> — Duplicate file deleted</li>
+        <li><span class="tag tag-gray">Yellow</span> — No matching files found in the directory</li>
+      </ul>
+    </div>
+
+    <hr class="divider" />
+
+    <div class="usage-section">
+      <h3>Execution Policy (First-time use)</h3>
+      <p style="margin-bottom:8px">If you receive an error stating that the script cannot be run, open PowerShell as an Administrator and execute:</p>
+      <div class="cmd-block">Set-ExecutionPolicy -Scope CurrentUser RemoteSigned</div>
+    </div>
+
+    <hr class="divider" />
+
+    <div class="usage-section">
+      <h3>⚠️ Notes</h3>
+      <ol>
+        <li>The script will <strong>permanently delete</strong> detected duplicate files. Please back up important data before operating.</li>
+        <li>Renaming uses the last 12 digits of the hash. While collisions are extremely rare, the script includes automatic suffix handing (<code class="cmd-inline">-1</code>, <code class="cmd-inline">-2</code>...).</li>
+        <li>It only processes files in the <strong>current directory</strong> and does not recursively search subfolders.</li>
+      </ol>
+    </div>
+  </div>
+
+  <!-- Code Card -->
+  <div class="code-card">
+    <div class="code-toolbar">
+      <div class="code-filename">
+        📄 <span>RenameByHash.ps1</span>
+      </div>
+      <div class="btn-group">
+        <button class="btn btn-copy" onclick="copyCode(this)">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 0 1 0 1.5h-1.5a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-1.5a.75.75 0 0 1 1.5 0v1.5A1.75 1.75 0 0 1 9.25 16h-7.5A1.75 1.75 0 0 1 0 14.25Z"/><path d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0 1 14.25 11h-7.5A1.75 1.75 0 0 1 5 9.25Zm1.75-.25a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-7.5a.25.25 0 0 0-.25-.25Z"/></svg>
+          Copy Code
+        </button>
+        <button class="btn btn-download" onclick="downloadScript()">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M7.47 10.78a.75.75 0 0 0 1.06 0l3.75-3.75a.75.75 0 0 0-1.06-1.06L8.75 8.44V1.75a.75.75 0 0 0-1.5 0v6.69L4.78 5.97a.75.75 0 0 0-1.06 1.06l3.75 3.75Z"/><path d="M3.75 13a.25.25 0 0 0-.25.25v.5c0 .138.112.25.25.25h8.5a.25.25 0 0 0 .25-.25v-.5a.25.25 0 0 0-.25-.25Zm-1.75.25c0-.966.784-1.75 1.75-1.75h8.5c.966 0 1.75.784 1.75 1.75v.5A1.75 1.75 0 0 1 12.25 15.5h-8.5A1.75 1.75 0 0 1 2 13.75Z"/></svg>
+          Download Script
+        </button>
+      </div>
+    </div>
+    <pre id="code-content"><span class="cmt"># Parameters definition</span>
+<span class="kw">param</span>(
+    [string]<span class="var">$TargetDir</span>,
+    [string]<span class="var">$Extension</span>
 )
 
-<span class="c"># Interactive path retrieval</span>
-<span class="k">if</span> ([string]::IsNullOrWhiteSpace(<span class="v">$TargetDir</span>)) {
-    <span class="v">$TargetDir</span> = Read-Host <span class="s">"Enter target folder path (Press Enter for current directory)"</span>
+<span class="cmt"># Interactive path retrieval</span>
+<span class="kw">if</span> ([string]::<span class="fn">IsNullOrWhiteSpace</span>(<span class="var">$TargetDir</span>)) {
+    <span class="var">$TargetDir</span> = <span class="fn">Read-Host</span> <span class="str">"Enter target folder path (Press Enter for current directory)"</span>
 }
-<span class="k">if</span> ([string]::IsNullOrWhiteSpace(<span class="v">$TargetDir</span>)) { <span class="v">$TargetDir</span> = Get-Location }
+<span class="kw">if</span> ([string]::<span class="fn">IsNullOrWhiteSpace</span>(<span class="var">$TargetDir</span>)) { <span class="var">$TargetDir</span> = <span class="fn">Get-Location</span> }
 
-<span class="c"># Interactive extension retrieval</span>
-<span class="k">if</span> ([string]::IsNullOrWhiteSpace(<span class="v">$Extension</span>)) {
-    <span class="v">$Extension</span> = Read-Host <span class="s">"Enter file extension (e.g., png, jpg)"</span>
+<span class="cmt"># Interactive extension retrieval</span>
+<span class="kw">if</span> ([string]::<span class="fn">IsNullOrWhiteSpace</span>(<span class="var">$Extension</span>)) {
+    <span class="var">$Extension</span> = <span class="fn">Read-Host</span> <span class="str">"Enter file extension (e.g., png, jpg)"</span>
 }
-<span class="k">if</span> ([string]::IsNullOrWhiteSpace(<span class="v">$Extension</span>)) { <span class="v">$Extension</span> = <span class="s">"png"</span> }
-<span class="k">if</span> (!<span class="v">$Extension</span>.StartsWith(<span class="s">"."</span>)) { <span class="v">$Extension</span> = <span class="s">"."</span> + <span class="v">$Extension</span> }
+<span class="kw">if</span> ([string]::<span class="fn">IsNullOrWhiteSpace</span>(<span class="var">$Extension</span>)) { <span class="var">$Extension</span> = <span class="str">"png"</span> }
+<span class="kw">if</span> (!<span class="var">$Extension</span>.<span class="fn">StartsWith</span>(<span class="str">"."</span>)) { <span class="var">$Extension</span> = <span class="str">"."</span> + <span class="var">$Extension</span> }
 
-Write-Host <span class="s">"`n--- Task Started ---"</span> -ForegroundColor Cyan
-Write-Host <span class="s">"Directory: $TargetDir"</span>
-Write-Host <span class="s">"Extension: $Extension"</span>
+<span class="fn">Write-Host</span> <span class="str">"`n--- Task Started ---"</span> -ForegroundColor <span class="cyan">Cyan</span>
+<span class="fn">Write-Host</span> <span class="str">"Directory: <span class="var">$TargetDir</span>"</span>
+<span class="fn">Write-Host</span> <span class="str">"Extension: <span class="var">$Extension</span>"</span>
 
-<span class="k">if</span> (!(Test-Path <span class="v">$TargetDir</span>)) {
-    Write-Host <span class="s">"Error: Folder does not exist!"</span> -ForegroundColor Red
-    pause; <span class="k">exit</span>
+<span class="kw">if</span> (!(<span class="fn">Test-Path</span> <span class="var">$TargetDir</span>)) {
+    <span class="fn">Write-Host</span> <span class="str">"Error: Folder does not exist!"</span> -ForegroundColor Red
+    pause; <span class="kw">exit</span>
 }
 
-<span class="c"># Get list of files</span>
-<span class="v">$files</span> = Get-ChildItem -Path <span class="v">$TargetDir</span> -Filter <span class="s">"*$Extension"</span> -File
+<span class="cmt"># Get list of files</span>
+<span class="var">$files</span> = <span class="fn">Get-ChildItem</span> -Path <span class="var">$TargetDir</span> -Filter <span class="str">"*<span class="var">$Extension</span>"</span> -File
 
-<span class="k">if</span> (<span class="v">$files</span>.Count -eq 0) {
-    Write-Host <span class="s">"No matching files found."</span> -ForegroundColor Yellow
-} <span class="k">else</span> {
-    <span class="c"># Hash Map to store discovered hashes for duplicate detection</span>
-    <span class="v">$hashMap</span> = @{}
+<span class="kw">if</span> (<span class="var">$files</span>.Count -<span class="op">eq</span> <span class="num">0</span>) {
+    <span class="fn">Write-Host</span> <span class="str">"No matching files found."</span> -ForegroundColor Yellow
+} <span class="kw">else</span> {
+    <span class="cmt"># Hash Map to store discovered hashes for duplicate detection</span>
+    <span class="var">$hashMap</span> = @{}
 
-    <span class="k">foreach</span> (<span class="v">$f</span> <span class="k">in</span> <span class="v">$files</span>) {
-        <span class="k">try</span> {
-            <span class="c"># Calculate full SHA256 Hash</span>
-            <span class="v">$hash</span> = (Get-FileHash <span class="v">$f</span>.FullName -Algorithm SHA256).Hash.ToUpper()
+    <span class="kw">foreach</span> (<span class="var">$f</span> <span class="kw">in</span> <span class="var">$files</span>) {
+        <span class="kw">try</span> {
+            <span class="cmt"># Calculate full SHA256 Hash</span>
+            <span class="var">$hash</span> = (<span class="fn">Get-FileHash</span> <span class="var">$f</span>.FullName -Algorithm SHA256).Hash.<span class="fn">ToUpper</span>()
             
-            <span class="c"># --- Deduplication Logic ---</span>
-            <span class="k">if</span> (<span class="v">$hashMap</span>.ContainsKey(<span class="v">$hash</span>)) {
-                <span class="c"># If hash exists, it is a duplicate</span>
-                <span class="v">$originalFile</span> = <span class="v">$hashMap</span>[<span class="v">$hash</span>]
-                Remove-Item -Path <span class="v">$f</span>.FullName -Force
-                Write-Host <span class="s">"Deleted Duplicate: $($f.Name) (Identical to $originalFile)"</span> -ForegroundColor Gray
-                <span class="k">continue</span>
+            <span class="cmt"># --- Deduplication Logic ---</span>
+            <span class="kw">if</span> (<span class="var">$hashMap</span>.<span class="fn">ContainsKey</span>(<span class="var">$hash</span>)) {
+                <span class="cmt"># If hash exists, it is a duplicate</span>
+                <span class="var">$originalFile</span> = <span class="var">$hashMap</span>[<span class="var">$hash</span>]
+                <span class="fn">Remove-Item</span> -Path <span class="var">$f</span>.FullName -Force
+                <span class="fn">Write-Host</span> <span class="str">"Deleted Duplicate: <span class="var">$($f.Name)</span> (Identical to <span class="var">$originalFile</span>)"</span> -ForegroundColor Gray
+                <span class="kw">continue</span>
             }
 
-            <span class="c"># Record new hash in the map</span>
-            <span class="v">$hashMap</span>[<span class="v">$hash</span>] = <span class="v">$f</span>.Name
+            <span class="cmt"># Record new hash in the map</span>
+            <span class="var">$hashMap</span>[<span class="var">$hash</span>] = <span class="var">$f</span>.Name
 
-            <span class="c"># --- Renaming Logic ---</span>
-            <span class="c"># Use the last 12 characters of the hash as the new filename</span>
-            <span class="v">$newNameBase</span> = <span class="v">$hash</span>.Substring(<span class="v">$hash</span>.Length - 12)
-            <span class="v">$newName</span> = <span class="v">$newNameBase</span> + <span class="v">$Extension</span>
+            <span class="cmt"># --- Renaming Logic ---</span>
+            <span class="cmt"># Use the last 12 characters of the hash as the new filename</span>
+            <span class="var">$newNameBase</span> = <span class="var">$hash</span>.<span class="fn">Substring</span>(<span class="var">$hash</span>.Length - <span class="num">12</span>)
+            <span class="var">$newName</span> = <span class="var">$newNameBase</span> + <span class="var">$Extension</span>
             
-            <span class="c"># Skip if the file is already named correctly</span>
-            <span class="k">if</span> (<span class="v">$f</span>.Name -eq <span class="v">$newName</span>) { <span class="k">continue</span> }
+            <span class="cmt"># Skip if the file is already named correctly</span>
+            <span class="kw">if</span> (<span class="var">$f</span>.Name -<span class="op">eq</span> <span class="var">$newName</span>) { <span class="kw">continue</span> }
 
-            <span class="c"># Conflict handling (low probability collision check)</span>
-            <span class="k">if</span> (Test-Path (Join-Path <span class="v">$TargetDir</span> <span class="v">$newName</span>)) {
-                <span class="v">$count</span> = 1
-                <span class="k">while</span> (Test-Path (Join-Path <span class="v">$TargetDir</span> <span class="s">"$newNameBase-$count$Extension"</span>)) {
-                    <span class="v">$count</span>++
+            <span class="cmt"># Conflict handling (low probability collision check)</span>
+            <span class="kw">if</span> (<span class="fn">Test-Path</span> (<span class="fn">Join-Path</span> <span class="var">$TargetDir</span> <span class="var">$newName</span>)) {
+                <span class="var">$count</span> = <span class="num">1</span>
+                <span class="kw">while</span> (<span class="fn">Test-Path</span> (<span class="fn">Join-Path</span> <span class="var">$TargetDir</span> <span class="str">"<span class="var">$newNameBase</span>-<span class="var">$count$Extension</span>"</span>)) {
+                    <span class="var">$count</span>++
                 }
-                <span class="v">$newName</span> = <span class="s">"$newNameBase-$count$Extension"</span>
+                <span class="var">$newName</span> = <span class="str">"<span class="var">$newNameBase</span>-<span class="var">$count$Extension</span>"</span>
             }
 
-            Rename-Item -Path <span class="v">$f</span>.FullName -NewName <span class="v">$newName</span> -ErrorAction Stop
-            Write-Host <span class="s">"Renamed: $($f.Name) -> $newName"</span> -ForegroundColor Green
+            <span class="fn">Rename-Item</span> -Path <span class="var">$f</span>.FullName -NewName <span class="var">$newName</span> -ErrorAction Stop
+            <span class="fn">Write-Host</span> <span class="str">"Renamed: <span class="var">$($f.Name)</span> -> <span class="var">$newName</span>"</span> -ForegroundColor Green
             
-            <span class="c"># Update the map with the new filename</span>
-            <span class="v">$hashMap</span>[<span class="v">$hash</span>] = <span class="v">$newName</span>
+            <span class="cmt"># Update the map with the new filename</span>
+            <span class="var">$hashMap</span>[<span class="var">$hash</span>] = <span class="var">$newName</span>
         }
-        <span class="k">catch</span> {
-            Write-Host <span class="s">"Failed to process: $($f.Name). Reason: $($_.Exception.Message)"</span> -ForegroundColor Red
+        <span class="kw">catch</span> {
+            <span class="fn">Write-Host</span> <span class="str">"Failed to process: <span class="var">$($f.Name)</span>. Reason: <span class="var">$($_.Exception.Message)</span>"</span> -ForegroundColor Red
         }
     }
 }
 
-Write-Host <span class="s">"`n--- Task Completed ---"</span> -ForegroundColor Cyan
+<span class="fn">Write-Host</span> <span class="str">"`n--- Task Completed ---"</span> -ForegroundColor <span class="cyan">Cyan</span>
 pause</pre>
-    </div>
+  </div>
 
-    <div class="readme-section">
-        <h2>README.md</h2>
-        <p>This script renames files based on their <strong>SHA256 hash</strong> value. It is ideal for organizing wallpaper collections, asset libraries, or identifying duplicate content.</p>
-        
-        <h3>Key Features</h3>
-        <ul>
-            <li><strong>Content-Based & Deduplication</strong>: Identifies files by actual content. If an identical file (matching hash) is found, the duplicate is automatically deleted to save space.</li>
-            <li><strong>Hash Filenames</strong>: Uses the last 12 characters of the SHA256 hash for neat and standardized naming.</li>
-            <li><strong>Collision Safety</strong>: Implements an incremental counter suffix (e.g., <code class="inline-code">-1</code>, <code class="inline-code">-2</code>) in the extremely rare event of a name collision.</li>
-            <li><strong>Customizable</strong>: Prompted inputs for both target directory and file extension.</li>
-        </ul>
-
-        <h3>How to Use</h3>
-        <p><strong>Option A: Direct Execution</strong></p>
-        <ul>
-            <li>Click <strong>Download</strong> above to save the <code class="inline-code">RenameByHash.ps1</code> file.</li>
-            <li>Right-click the file and select <strong>"Run with PowerShell"</strong>.</li>
-            <li>Follow the on-screen prompts to set the folder path and file type.</li>
-        </ul>
-
-        <p><strong>Option B: Command Line</strong></p>
-        <p>Pass parameters directly via the terminal:</p>
-        <code class="inline-code">.\RenameByHash.ps1 -TargetDir "C:\Media\Images" -Extension "png"</code>
-
-        <h3>Requirements & Notes</h3>
-        <ul>
-            <li><strong>Execution Policy</strong>: If scripts are disabled on your system, run PowerShell as Administrator and execute: <code class="inline-code">Set-ExecutionPolicy RemoteSigned</code>.</li>
-            <li><strong>Safety Notice</strong>: This version includes <strong>file deletion</strong> for duplicate content. Always test on a temporary folder or ensure you have a backup before processing large libraries.</li>
-        </ul>
-    </div>
+  <div class="footer">SHA256 · Named by Last 12 Digits of Hash · Auto Deduplication</div>
 </div>
 
 <script>
-    function getCode() { return document.getElementById('ps-code').innerText; }
+  const RAW_SCRIPT = `# Parameters definition
+param(
+    [string]$TargetDir,
+    [string]$Extension
+)
 
-    function copyCode() {
-        navigator.clipboard.writeText(getCode()).then(() => {
-            const btn = document.getElementById('copyBtn');
-            btn.innerText = 'Copied!';
-            setTimeout(() => { btn.innerText = 'Copy raw'; }, 2000);
-        });
-    }
+# Interactive path retrieval
+if ([string]::IsNullOrWhiteSpace($TargetDir)) {
+    $TargetDir = Read-Host "Enter target folder path (Press Enter for current directory)"
+}
+if ([string]::IsNullOrWhiteSpace($TargetDir)) { $TargetDir = Get-Location }
 
-    function downloadCode() {
-        const blob = new Blob([getCode()], { type: 'text/plain' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'RenameByHash.ps1';
-        a.click();
-        URL.revokeObjectURL(url);
+# Interactive extension retrieval
+if ([string]::IsNullOrWhiteSpace($Extension)) {
+    $Extension = Read-Host "Enter file extension (e.g., png, jpg)"
+}
+if ([string]::IsNullOrWhiteSpace($Extension)) { $Extension = "png" }
+if (!$Extension.StartsWith(".")) { $Extension = "." + $Extension }
+
+Write-Host "\`n--- Task Started ---" -ForegroundColor Cyan
+Write-Host "Directory: $TargetDir"
+Write-Host "Extension: $Extension"
+
+if (!(Test-Path $TargetDir)) {
+    Write-Host "Error: Folder does not exist!" -ForegroundColor Red
+    pause; exit
+}
+
+# Get list of files
+$files = Get-ChildItem -Path $TargetDir -Filter "*$Extension" -File
+
+if ($files.Count -eq 0) {
+    Write-Host "No matching files found." -ForegroundColor Yellow
+} else {
+    # Hash Map to store discovered hashes for duplicate detection
+    $hashMap = @{}
+
+    foreach ($f in $files) {
+        try {
+            # Calculate full SHA256 Hash
+            $hash = (Get-FileHash $f.FullName -Algorithm SHA256).Hash.ToUpper()
+            
+            # --- Deduplication Logic ---
+            if ($hashMap.ContainsKey($hash)) {
+                # If hash exists, it is a duplicate
+                $originalFile = $hashMap[$hash]
+                Remove-Item -Path $f.FullName -Force
+                Write-Host "Deleted Duplicate: $($f.Name) (Identical to $originalFile)" -ForegroundColor Gray
+                continue
+            }
+
+            # Record new hash in the map
+            $hashMap[$hash] = $f.Name
+
+            # --- Renaming Logic ---
+            # Use the last 12 characters of the hash as the new filename
+            $newNameBase = $hash.Substring($hash.Length - 12)
+            $newName = $newNameBase + $Extension
+            
+            # Skip if the file is already named correctly
+            if ($f.Name -eq $newName) { continue }
+
+            # Conflict handling (low probability collision check)
+            if (Test-Path (Join-Path $TargetDir $newName)) {
+                $count = 1
+                while (Test-Path (Join-Path $TargetDir "$newNameBase-$count$Extension")) {
+                    $count++
+                }
+                $newName = "$newNameBase-$count$Extension"
+            }
+
+            Rename-Item -Path $f.FullName -NewName $newName -ErrorAction Stop
+            Write-Host "Renamed: $($f.Name) -> $newName" -ForegroundColor Green
+            
+            # Update the map with the new filename
+            $hashMap[$hash] = $newName
+        }
+        catch {
+            Write-Host "Failed to process: $($f.Name). Reason: $($_.Exception.Message)" -ForegroundColor Red
+        }
     }
+}
+
+Write-Host "\`n--- Task Completed ---" -ForegroundColor Cyan
+pause`;
+
+  function copyCode(btn) {
+    navigator.clipboard.writeText(RAW_SCRIPT).then(() => {
+      btn.classList.add('copied');
+      btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M13.78 4.22a.75.75 0 0 1 0 1.06l-7.25 7.25a.75.75 0 0 1-1.06 0L2.22 9.28a.75.75 0 0 1 1.06-1.06L6 10.94l6.72-6.72a.75.75 0 0 1 1.06 0Z"/></svg> Copied!`;
+      setTimeout(() => {
+        btn.classList.remove('copied');
+        btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 0 1 0 1.5h-1.5a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-1.5a.75.75 0 0 1 1.5 0v1.5A1.75 1.75 0 0 1 9.25 16h-7.5A1.75 1.75 0 0 1 0 14.25Z"/><path d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0 1 14.25 11h-7.5A1.75 1.75 0 0 1 5 9.25Zm1.75-.25a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-7.5a.25.25 0 0 0-.25-.25Z"/></svg> Copy Code`;
+      }, 2000);
+    });
+  }
+
+  function downloadScript() {
+    const blob = new Blob([RAW_SCRIPT], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'RenameByHash.ps1';
+    a.click();
+    URL.revokeObjectURL(url);
+  }
 </script>
-
 </body>
 </html>
