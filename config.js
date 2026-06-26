@@ -31,6 +31,11 @@ window.WORKSPACE_DATA = {
             "title": "JSON Duplicate ID Checker",
             "desc": "A web-based utility to detect and analyze duplicate IDs within JSON arrays or hash maps.",
             "url": "check-json-id.html"
+        },
+		{
+            "title": "JSON Live Table Editor",
+            "desc": "A web-based utility to view, edit, and manage JSON data in a real-time interactive table format.",
+            "url": "json-live-table-editor.html"
         }
     ]
 };
